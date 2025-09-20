@@ -1,364 +1,426 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="theme-color" content="#1e40af" />
-<title>Family Tree</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#1e40af" />
+  <title>Family Tree</title>
 
-<!-- Tailwind CSS CDN -->
-<script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- vis.js for visualization -->
-<link href="https://unpkg.com/vis-network@9/styles/vis-network.css" rel="stylesheet" />
-<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <!-- vis.js for visualization -->
+  <link href="https://unpkg.com/vis-network@9/styles/vis-network.css" rel="stylesheet" />
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 
-<!-- Web App Manifest -->
-<link rel="manifest" href="manifest.json" />
-<link rel="icon"
-    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌳</text></svg>">
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌳</text></svg>">
 </head>
 <body class="bg-gray-100 font-sans">
 
-<div class="container mx-auto p-4 max-w-4xl">
+  <div class="container mx-auto p-4 max-w-4xl">
     <h1 class="text-3xl font-bold text-center mb-6 text-blue-700">My Family Tree</h1>
 
     <!-- Controls -->
     <div class="bg-white p-4 rounded shadow-md mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-    <button onclick="addPerson()" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">➕ Add Person</button>
-    <button onclick="exportData()" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">📤 Export</button>
-    <label class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded text-center cursor-pointer">
+      <button onclick="addPerson()" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">➕ Add Person</button>
+      <button onclick="exportData()" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">📤 Export</button>
+      <label class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded text-center cursor-pointer">
         📂 Import <input type="file" id="importFile" accept=".json" class="hidden" />
-    </label>
+      </label>
     </div>
 
     <!-- Linking Section -->
     <div class="bg-white p-4 rounded shadow-md mb-6">
-        <h2 class="text-lg font-semibold mb-3">🔗 Link Family Members</h2>
-    
-        <!-- Parent → Child -->
-        <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700">Parent ➝ Child</label>
-            <select id="parentId" class="w-full mt-1 p-2 border rounded"></select>
-            ➝
-            <select id="childId" class="w-full mt-1 p-2 border rounded"></select>
-            <button onclick="linkParentChild()"
-                class="mt-2 bg-green-500 text-white py-1 px-3 rounded text-sm hover:bg-green-600">Link</button>
-        </div>
-    
-        <!-- Spouse Linking -->
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Spouse / Partner</label>
-            <select id="personId1" class="w-full mt-1 p-2 border rounded"></select>
-            ↔
-            <select id="personId2" class="w-full mt-1 p-2 border rounded"></select>
-            <button onclick="linkSpouse()"
-                class="mt-2 bg-purple-500 text-white py-1 px-3 rounded text-sm hover:bg-purple-600">Link</button>
-        </div>
+      <h2 class="text-lg font-semibold mb-3">🔗 Link Family Members</h2>
+
+      <!-- Parent → Child -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700">Parent ➝ Child</label>
+        <select id="parentId" class="w-full mt-1 p-2 border rounded"></select>
+        ➝
+        <select id="childId" class="w-full mt-1 p-2 border rounded"></select>
+        <button onclick="linkParentChild()" class="mt-2 bg-green-500 text-white py-1 px-3 rounded text-sm hover:bg-green-600">Link</button>
+      </div>
+
+      <!-- Spouse Linking -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Spouse / Partner</label>
+        <select id="personId1" class="w-full mt-1 p-2 border rounded"></select>
+        ↔
+        <select id="personId2" class="w-full mt-1 p-2 border rounded"></select>
+        <button onclick="linkSpouse()" class="mt-2 bg-purple-500 text-white py-1 px-3 rounded text-sm hover:bg-purple-600">Link</button>
+      </div>
     </div>
 
     <!-- Tree Visualization -->
     <div id="tree" class="bg-white p-2 rounded shadow h-96"></div>
-    </div>
+  </div>
 
-<!-- Modal for Adding/Editing -->
-<div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
-    <div class="bg-white p-6 rounded shadow-lg w-96">
-        <h2 class="text-xl font-bold mb-4">Add Family Member</h2>
-        <form id="personForm">
+  <!-- Modal for Adding/Editing -->
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+    <div class="bg-white p-6 rounded shadow-lg w-96 max-h-96 overflow-y-auto">
+      <h2 class="text-xl font-bold mb-4" id="modalTitle">Add Family Member</h2>
+      <form id="personForm">
         <input type="text" id="fullName" placeholder="Full Name" class="w-full mb-3 p-2 border rounded" required />
         <input type="date" id="birthDate" class="w-full mb-3 p-2 border rounded" required />
         <input type="date" id="deathDate" placeholder="Death Date (optional)" class="w-full mb-3 p-2 border rounded" />
-        <div class="flex gap-2">
-        <button type="submit" class="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Save</button>
-        <button type="button" onclick="closeModal()"
-            class="flex-1 bg-gray-400 text-white py-2 rounded hover:bg-gray-500">Cancel</button>
-        </div>
-        </form>
-        </div>
-        </div>
 
-<script>
+        <div class="flex gap-2 mb-4">
+          <button type="submit" class="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Save</button>
+          <button type="button" onclick="closeModal()" class="flex-1 bg-gray-400 text-white py-2 rounded hover:bg-gray-500">Cancel</button>
+        </div>
+      </form>
+
+      <!-- Current Relationships -->
+      <div id="relationshipsSection" class="mt-4 hidden">
+        <h3 class="text-sm font-semibold text-gray-700 mb-2">Current Relationships</h3>
+        <ul id="relationshipsList" class="space-y-1 text-sm"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
     // Default data structure
     let family = {
-        people: [],
-        relationships: [] // { type: 'parent', parentId, childId } or { type: 'spouse', personId1, personId2 }
+      people: [],
+      relationships: [] // { id, type, parentId, childId } or { id, type, personId1, personId2 }
     };
 
-        // Load from localStorage on start
-        function loadData() {
-            const saved = localStorage.getItem('familyTree');
-            if (saved) {
-                family = JSON.parse(saved);
-            } else {
-                // Add demo person if empty
-                const johnId = newId();
-                family.people.push({
-                    id: johnId,
-                    fullName: "John Doe",
-                    birthDate: "1970-01-01",
-                    deathDate: null
-                });
-                saveData(); // Save default
-            }
-            renderTree();
-        refreshSelects();
+    // Load from localStorage on start
+    function loadData() {
+      const saved = localStorage.getItem('familyTree');
+      if (saved) {
+        family = JSON.parse(saved);
+      } else {
+        saveData();
+      }
+      renderTree();
+      refreshSelects();
     }
 
-        // Save to localStorage
-        function saveData() {
-            localStorage.setItem('familyTree', JSON.stringify(family));
-        }
+    // Save to localStorage
+    function saveData() {
+      localStorage.setItem('familyTree', JSON.stringify(family));
+    }
 
-        // Generate simple ID
-        function newId() {
-            return Date.now().toString(36) + Math.random().toString(36).substr(2);
-        }
+    // Generate simple ID
+    function newId() {
+      return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
 
-        // Open modal to add person
-        function addPerson(person = null) {
-            document.getElementById('personForm').reset();
-            const form = document.getElementById('personForm');
-            const fullNameInput = document.getElementById('fullName');
-            const birthDateInput = document.getElementById('birthDate');
-            const deathDateInput = document.getElementById('deathDate');
+    // Currently edited person (for relationship management)
+    let currentEditedPerson = null;
 
-        if (person) {
-            fullNameInput.value = person.fullName;
-            birthDateInput.value = person.birthDate;
-            deathDateInput.value = person.deathDate || '';
-        }
+    // Open modal to add or edit person
+    function addPerson(person = null) {
+      document.getElementById('personForm').reset();
+      const fullNameInput = document.getElementById('fullName');
+      const birthDateInput = document.getElementById('birthDate');
+      const deathDateInput = document.getElementById('deathDate');
+      const relationshipsSection = document.getElementById('relationshipsSection');
+      const relationshipsList = document.getElementById('relationshipsList');
 
-        form.onsubmit = (e) => {
-            e.preventDefault();
-            if (person) {
-                // Edit existing
-                Object.assign(person, {
-                    fullName: fullNameInput.value,
-                    birthDate: birthDateInput.value,
-                    deathDate: deathDateInput.value || null
-                });
-            } else {
-                // Add new
-                family.people.push({
-                    id: newId(),
-                    fullName: fullNameInput.value,
-                    birthDate: birthDateInput.value,
-                    deathDate: deathDateInput.value || null
-                });
+      if (person) {
+        // Editing existing
+        document.getElementById('modalTitle').textContent = `Edit: ${person.fullName}`;
+        fullNameInput.value = person.fullName;
+        birthDateInput.value = person.birthDate;
+        deathDateInput.value = person.deathDate || '';
+        relationshipsSection.classList.remove('hidden');
+        currentEditedPerson = person;
+
+        // Populate relationships
+        relationshipsList.innerHTML = '';
+        const relatedLinks = family.relationships.filter(r =>
+          (r.type === 'parent' && (r.parentId === person.id || r.childId === person.id)) ||
+          (r.type === 'spouse' && (r.personId1 === person.id || r.personId2 === person.id))
+        );
+
+        if (relatedLinks.length === 0) {
+          relationshipsList.innerHTML = '<li class="text-gray-500 italic">No relationships</li>';
+        } else {
+          relatedLinks.forEach(link => {
+            const otherPerson = getOtherPersonInRelationship(link, person.id);
+            let label = '';
+            if (link.type === 'parent') {
+              label = link.parentId === person.id
+                ? `Parent of ${otherPerson?.fullName}`
+                : `Child: ${otherPerson?.fullName}`;
+            } else if (link.type === 'spouse') {
+              label = `Spouse: ${otherPerson?.fullName}`;
             }
-            saveData();
-            closeModal();
-            renderTree();
-          refreshSelects();
+
+            const li = document.createElement('li');
+            li.className = 'flex justify-between items-center bg-gray-100 px-2 py-1 rounded';
+            li.innerHTML = `
+              <span>${label}</span>
+              <button type="button" onclick="removeRelationship('${link.id}')" class="text-red-500 text-xs ml-2 hover:underline">Remove</button>
+            `;
+            relationshipsList.appendChild(li);
+          });
+        }
+      } else {
+        // Adding new
+        document.getElementById('modalTitle').textContent = 'Add Family Member';
+        relationshipsSection.classList.add('hidden');
+        currentEditedPerson = null;
+      }
+
+      // Form submit handler
+      document.getElementById('personForm').onsubmit = (e) => {
+        e.preventDefault();
+        if (person) {
+          Object.assign(person, {
+            fullName: fullNameInput.value,
+            birthDate: birthDateInput.value,
+            deathDate: deathDateInput.value || null
+          });
+        } else {
+          family.people.push({
+            id: newId(),
+            fullName: fullNameInput.value,
+            birthDate: birthDateInput.value,
+            deathDate: deathDateInput.value || null
+          });
+        }
+        saveData();
+        closeModal();
+        renderTree();
+        refreshSelects();
       };
 
-        document.getElementById('modal').classList.remove('hidden');
+      document.getElementById('modal').classList.remove('hidden');
     }
 
-        // Close modal
-        function closeModal() {
-            document.getElementById('modal').classList.add('hidden');
+    // Close modal
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
+    }
+
+    // Helper: Get the other person in a relationship
+    function getOtherPersonInRelationship(link, selfId) {
+      if (link.type === 'parent') {
+        const otherId = link.parentId === selfId ? link.childId : link.parentId;
+        return family.people.find(p => p.id === otherId);
+      } else if (link.type === 'spouse') {
+        const otherId = link.personId1 === selfId ? link.personId2 : link.personId1;
+        return family.people.find(p => p.id === otherId);
+      }
+      return null;
+    }
+
+    // Refresh dropdowns (used in linking UI)
+    function refreshSelects() {
+      const selects = [
+        document.getElementById('parentId'),
+        document.getElementById('childId'),
+        document.getElementById('personId1'),
+        document.getElementById('personId2')
+      ];
+
+      selects.forEach(select => {
+        const prevValue = select.value;
+        select.innerHTML = '<option value="">(Select a person)</option>';
+        
+        family.people.forEach(p => {
+          const option = document.createElement('option');
+          option.value = p.id;
+          option.textContent = p.fullName;
+          select.appendChild(option);
+        });
+
+        if (prevValue && family.people.some(p => p.id === prevValue)) {
+          select.value = prevValue;
         }
-
-        // Refresh all dropdowns with current people
-        function refreshSelects() {
-            const selects = [
-                document.getElementById('parentId'),
-                document.getElementById('childId'),
-                document.getElementById('personId1'),
-                document.getElementById('personId2')
-            ];
-
-            selects.forEach(select => {
-                const prevValue = select.value;
-                select.innerHTML = '<option value="">(Select a person)</option>';
-
-                family.people.forEach(person => {
-                    const option = document.createElement('option');
-                    option.value = person.id;
-                    option.textContent = person.fullName;
-                    select.appendChild(option);
-                });
-
-          if (prevValue && family.people.some(p => p.id === prevValue)) {
-              select.value = prevValue;
-          }
       });
     }
 
-        // Link parent → child
-        function linkParentChild() {
-            const parentId = document.getElementById('parentId').value;
-            const childId = document.getElementById('childId').value;
+    // Link parent → child
+    function linkParentChild() {
+      const parentId = document.getElementById('parentId').value;
+      const childId = document.getElementById('childId').value;
 
-            if (!parentId || !childId) {
-                alert("Please select both parent and child.");
-                return;
-            }
-            if (parentId === childId) {
-                alert("A person cannot be their own parent.");
-                return;
-            }
-            const exists = family.relationships.some(r =>
-                r.type === 'parent' && r.parentId === parentId && r.childId === childId
-            );
-            if (exists) {
-                alert("This parent-child link already exists.");
-                return;
-            }
+      if (!parentId || !childId) return alert("Please select both parent and child.");
+      if (parentId === childId) return alert("A person cannot be their own parent.");
 
-            family.relationships.push({ type: 'parent', parentId, childId });
-            saveData();
-            renderTree();
-            alert("✅ Parent-child link created!");
-        }
+      const exists = family.relationships.some(r =>
+        r.type === 'parent' && r.parentId === parentId && r.childId === childId
+      );
+      if (exists) return alert("This parent-child link already exists.");
 
-        // Link spouse
-        function linkSpouse() {
-            const id1 = document.getElementById('personId1').value;
-            const id2 = document.getElementById('personId2').value;
+      family.relationships.push({
+        id: newId(),
+        type: 'parent',
+        parentId,
+        childId
+      });
 
-            if (!id1 || !id2) {
-                alert("Please select two people.");
-                return;
-            }
-            if (id1 === id2) {
-                alert("A person cannot be their own spouse.");
-                return;
-            }
-            const exists = family.relationships.some(r =>
-                r.type === 'spouse' &&
-                ((r.personId1 === id1 && r.personId2 === id2) ||
-                    (r.personId1 === id2 && r.personId2 === id1))
-            );
-            if (exists) {
-                alert("This spouse relationship already exists.");
-                return;
-            }
+      saveData();
+      renderTree();
+      alert("✅ Parent-child link created!");
+    }
 
-            family.relationships.push({ type: 'spouse', personId1: id1, personId2: id2 });
-            saveData();
-            renderTree();
-            alert("✅ Spouse link created!");
-        }
+    // Link spouse
+    function linkSpouse() {
+      const id1 = document.getElementById('personId1').value;
+      const id2 = document.getElementById('personId2').value;
 
-        // Render family tree with vis.js
-        function renderTree() {
-            const nodes = new vis.DataSet(
-                family.people.map(p => ({
-                    id: p.id,
-                    label: `${p.fullName}\n${formatDate(p.birthDate)}${p.deathDate ? ' – ' + formatDate(p.deathDate) : ''}`
-                }))
-            );
+      if (!id1 || !id2) return alert("Please select two people.");
+      if (id1 === id2) return alert("A person cannot be their own spouse.");
 
-        const edges = [];
+      const exists = family.relationships.some(r =>
+        r.type === 'spouse' &&
+        ((r.personId1 === id1 && r.personId2 === id2) ||
+         (r.personId1 === id2 && r.personId2 === id1))
+      );
+      if (exists) return alert("This spouse relationship already exists.");
 
-        // Parent → Child (solid arrow)
-        family.relationships
-            .filter(r => r.type === 'parent')
-            .forEach(r => {
-                edges.push({ from: r.parentId, to: r.childId, arrows: 'to' });
-            });
+      family.relationships.push({
+        id: newId(),
+        type: 'spouse',
+        personId1: id1,
+        personId2: id2
+      });
 
-        // Spouse links (dashed, bidirectional)
-        family.relationships
-            .filter(r => r.type === 'spouse')
-            .forEach(r => {
-                edges.push({
-                    from: r.personId1,
-                    to: r.personId2,
-                    dashes: true,
-                    color: 'gray',
-                    arrows: 'both'
-                });
-            });
+      saveData();
+      renderTree();
+      alert("✅ Spouse link created!");
+    }
 
-        const data = { nodes, edges };
-        const options = {
-          layout: { hierarchical: false },
-          physics: {
-              enabled: true,
-              stabilization: { iterations: 100 },
-              hierarchicalRepulsion: { nodeDistance: 130 }
-          },
-          edges: { smooth: true },
-          interaction: { zoomView: true, dragView: true }
+    // Remove a relationship by ID
+    function removeRelationship(relationshipId) {
+      if (confirm("Remove this relationship?")) {
+        family.relationships = family.relationships.filter(r => r.id !== relationshipId);
+        saveData();
+        closeModal();           // Close modal
+        setTimeout(() => {
+          if (currentEditedPerson) {
+            addPerson(currentEditedPerson); // Reopen edit to refresh list
+          }
+        }, 100);
+        renderTree();
+        refreshSelects();
+      }
+    }
+
+    // Render family tree with vis.js
+    function renderTree() {
+      const nodes = new vis.DataSet(
+        family.people.map(p => ({
+          id: p.id,
+          label: `${p.fullName}\n${formatDate(p.birthDate)}${p.deathDate ? ' – ' + formatDate(p.deathDate) : ''}`
+        }))
+      );
+
+      const edges = [];
+
+      // Parent → Child (solid arrow)
+      family.relationships
+        .filter(r => r.type === 'parent')
+        .forEach(r => {
+          edges.push({ from: r.parentId, to: r.childId, arrows: 'to' });
+        });
+
+      // Spouse links (dashed, bidirectional)
+      family.relationships
+        .filter(r => r.type === 'spouse')
+        .forEach(r => {
+          edges.push({
+            from: r.personId1,
+            to: r.personId2,
+            dashes: true,
+            color: 'gray',
+            arrows: 'both'
+          });
+        });
+
+      const data = { nodes, edges };
+      const options = {
+        layout: { hierarchical: false },
+        physics: {
+          enabled: true,
+          stabilization: { iterations: 100 },
+          hierarchicalRepulsion: { nodeDistance: 130 }
+        },
+        edges: { smooth: true },
+        interaction: { zoomView: true, dragView: true }
       };
 
-        const container = document.getElementById('tree');
-        window.network = new vis.Network(container, data, options);
+      const container = document.getElementById('tree');
+      window.network = new vis.Network(container, data, options);
 
-        // Double-click to edit
-        window.network.on("doubleClick", (params) => {
-            if (params.nodes.length === 1) {
-                const nodeId = params.nodes[0];
-                const person = family.people.find(p => p.id === nodeId);
-                if (person) addPerson(person);
-            }
-        });
+      // Double-click to edit
+      window.network.on("doubleClick", (params) => {
+        if (params.nodes.length === 1) {
+          const nodeId = params.nodes[0];
+          const person = family.people.find(p => p.id === nodeId);
+          if (person) addPerson(person);
+        }
+      });
     }
 
-        // Format date as "Jan 1, 1970"
-        function formatDate(dateStr) {
-            if (!dateStr) return '?';
-            const d = new Date(dateStr);
-            return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-        }
-
-        // Export data as JSON file
-        function exportData() {
-            const blob = new Blob([JSON.stringify(family, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-        a.download = `family-tree-${new Date().toISOString().slice(0, 10)}.json`;
-        a.click();
+    // Format date
+    function formatDate(dateStr) {
+      if (!dateStr) return '?';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
     }
 
-        // Import data from JSON file
-        document.getElementById('importFile').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const text = await file.text();
-            try {
-                const imported = JSON.parse(text);
-            if (Array.isArray(imported.people)) {
-                family = imported;
-                saveData();
-                alert('✅ Import successful!');
-                location.reload();
-            } else {
-                alert('❌ Invalid format.');
-            }
-        } catch (err) {
-            alert('❌ Failed to parse JSON.');
-            console.error(err);
+    // Export data as JSON
+    function exportData() {
+      const blob = new Blob([JSON.stringify(family, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `family-tree-${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+    }
+
+    // Import data
+    document.getElementById('importFile').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const text = await file.text();
+      try {
+        const imported = JSON.parse(text);
+        if (Array.isArray(imported.people)) {
+          family = imported;
+          saveData();
+          alert('✅ Import successful!');
+          location.reload();
+        } else {
+          alert('❌ Invalid format.');
         }
-        e.target.value = ''; // Reset input
+      } catch (err) {
+        alert('❌ Failed to parse JSON.');
+        console.error(err);
+      }
+      e.target.value = ''; // Reset input
     });
 
-        // PWA: Prompt to install
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            setTimeout(() => {
-                if (confirm("Want to install this Family Tree app for offline use?")) {
-                    e.prompt();
-                }
-            }, 1000);
-        });
+    // PWA Install Prompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      setTimeout(() => {
+        if (confirm("Want to install this Family Tree app for offline use?")) {
+          e.prompt();
+        }
+      }, 1000);
+    });
 
-        // Load everything when page is ready
-        window.onload = () => {
-            loadData();
-        };
+    // Load everything
+    window.onload = () => {
+      loadData();
+    };
   </script>
 
-<!-- Register Service Worker -->
-<script>
+  <!-- Register Service Worker -->
+  <script>
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').catch(console.error);
+      navigator.serviceWorker.register('sw.js').catch(console.error);
     }
-</script>
+  </script>
 </body>
 </html>
