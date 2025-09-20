@@ -1,71 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#1e40af" />
-    <title>Family Tree</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#1e40af" />
+<title>Family Tree</title>
 
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- vis.js for visualization -->
-    <link href="https://unpkg.com/vis-network@9/styles/vis-network.css" rel="stylesheet" />
-    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<!-- vis.js for visualization -->
+<link href="https://unpkg.com/vis-network@9/styles/vis-network.css" rel="stylesheet" />
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 
-    <!-- Web App Manifest -->
-    <link rel="manifest" href="manifest.json" />
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌳</text></svg>">
+<!-- Web App Manifest -->
+<link rel="manifest" href="manifest.json" />
+<link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌳</text></svg>">
 </head>
-
 <body class="bg-gray-100 font-sans">
 
-    <div class="container mx-auto p-4 max-w-4xl">
-        <h1 class="text-3xl font-bold text-center mb-6 text-blue-700">My Family Tree</h1>
+<div class="container mx-auto p-4 max-w-4xl">
+    <h1 class="text-3xl font-bold text-center mb-6 text-blue-700">My Family Tree</h1>
 
-        <!-- Controls -->
-        <div class="bg-white p-4 rounded shadow-md mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button onclick="addPerson()" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">➕ Add
-                Person</button>
-            <button onclick="exportData()" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">📤
-                Export</button>
-            <label class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded text-center cursor-pointer">
-                📂 Import <input type="file" id="importFile" accept=".json" class="hidden" />
-            </label>
-        </div>
-
-        <!-- Tree Visualization -->
-        <div id="tree" class="bg-white p-2 rounded shadow h-96"></div>
+    <!-- Controls -->
+    <div class="bg-white p-4 rounded shadow-md mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+    <button onclick="addPerson()" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">➕ Add Person</button>
+    <button onclick="exportData()" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">📤 Export</button>
+    <label class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded text-center cursor-pointer">
+        📂 Import <input type="file" id="importFile" accept=".json" class="hidden" />
+    </label>
     </div>
 
-    <!-- Modal for Adding/Editing -->
-    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
-        <div class="bg-white p-6 rounded shadow-lg w-96">
-            <h2 class="text-xl font-bold mb-4">Add Family Member</h2>
-            <form id="personForm">
-                <input type="text" id="fullName" placeholder="Full Name" class="w-full mb-3 p-2 border rounded"
-                    required />
-                <input type="date" id="birthDate" class="w-full mb-3 p-2 border rounded" required />
-                <input type="date" id="deathDate" placeholder="Death Date (optional)"
-                    class="w-full mb-3 p-2 border rounded" />
-                <div class="flex gap-2">
-                    <button type="submit"
-                        class="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Save</button>
-                    <button type="button" onclick="closeModal()"
-                        class="flex-1 bg-gray-400 text-white py-2 rounded hover:bg-gray-500">Cancel</button>
-                </div>
-            </form>
+    <!-- Linking Section -->
+    <div class="bg-white p-4 rounded shadow-md mb-6">
+        <h2 class="text-lg font-semibold mb-3">🔗 Link Family Members</h2>
+    
+        <!-- Parent → Child -->
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Parent ➝ Child</label>
+            <select id="parentId" class="w-full mt-1 p-2 border rounded"></select>
+            ➝
+            <select id="childId" class="w-full mt-1 p-2 border rounded"></select>
+            <button onclick="linkParentChild()"
+                class="mt-2 bg-green-500 text-white py-1 px-3 rounded text-sm hover:bg-green-600">Link</button>
+        </div>
+    
+        <!-- Spouse Linking -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Spouse / Partner</label>
+            <select id="personId1" class="w-full mt-1 p-2 border rounded"></select>
+            ↔
+            <select id="personId2" class="w-full mt-1 p-2 border rounded"></select>
+            <button onclick="linkSpouse()"
+                class="mt-2 bg-purple-500 text-white py-1 px-3 rounded text-sm hover:bg-purple-600">Link</button>
         </div>
     </div>
 
-    <script>
-        // Default data structure
-        let family = {
-            people: [],
-            relationships: [] // { type: 'parent', parentId: 'id1', childId: 'id2' } or { type: 'spouse', personId1, personId2 }
-        };
+    <!-- Tree Visualization -->
+    <div id="tree" class="bg-white p-2 rounded shadow h-96"></div>
+    </div>
+
+<!-- Modal for Adding/Editing -->
+<div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+    <div class="bg-white p-6 rounded shadow-lg w-96">
+        <h2 class="text-xl font-bold mb-4">Add Family Member</h2>
+        <form id="personForm">
+        <input type="text" id="fullName" placeholder="Full Name" class="w-full mb-3 p-2 border rounded" required />
+        <input type="date" id="birthDate" class="w-full mb-3 p-2 border rounded" required />
+        <input type="date" id="deathDate" placeholder="Death Date (optional)" class="w-full mb-3 p-2 border rounded" />
+        <div class="flex gap-2">
+        <button type="submit" class="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Save</button>
+        <button type="button" onclick="closeModal()"
+            class="flex-1 bg-gray-400 text-white py-2 rounded hover:bg-gray-500">Cancel</button>
+        </div>
+        </form>
+        </div>
+        </div>
+
+<script>
+    // Default data structure
+    let family = {
+        people: [],
+        relationships: [] // { type: 'parent', parentId, childId } or { type: 'spouse', personId1, personId2 }
+    };
 
         // Load from localStorage on start
         function loadData() {
@@ -84,7 +102,8 @@
                 saveData(); // Save default
             }
             renderTree();
-        }
+        refreshSelects();
+    }
 
         // Save to localStorage
         function saveData() {
@@ -104,55 +123,124 @@
             const birthDateInput = document.getElementById('birthDate');
             const deathDateInput = document.getElementById('deathDate');
 
-            if (person) {
-                fullNameInput.value = person.fullName;
-                birthDateInput.value = person.birthDate;
-                deathDateInput.value = person.deathDate || '';
-            }
-
-            form.onsubmit = (e) => {
-                e.preventDefault();
-                if (person) {
-                    // Edit existing
-                    Object.assign(person, {
-                        fullName: fullNameInput.value,
-                        birthDate: birthDateInput.value,
-                        deathDate: deathDateInput.value || null
-                    });
-                } else {
-                    // Add new
-                    family.people.push({
-                        id: newId(),
-                        fullName: fullNameInput.value,
-                        birthDate: birthDateInput.value,
-                        deathDate: deathDateInput.value || null
-                    });
-                }
-                saveData();
-                closeModal();
-                renderTree();
-            };
-
-            document.getElementById('modal').classList.remove('hidden');
+        if (person) {
+            fullNameInput.value = person.fullName;
+            birthDateInput.value = person.birthDate;
+            deathDateInput.value = person.deathDate || '';
         }
+
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            if (person) {
+                // Edit existing
+                Object.assign(person, {
+                    fullName: fullNameInput.value,
+                    birthDate: birthDateInput.value,
+                    deathDate: deathDateInput.value || null
+                });
+            } else {
+                // Add new
+                family.people.push({
+                    id: newId(),
+                    fullName: fullNameInput.value,
+                    birthDate: birthDateInput.value,
+                    deathDate: deathDateInput.value || null
+                });
+            }
+            saveData();
+            closeModal();
+            renderTree();
+          refreshSelects();
+      };
+
+        document.getElementById('modal').classList.remove('hidden');
+    }
 
         // Close modal
         function closeModal() {
             document.getElementById('modal').classList.add('hidden');
         }
 
-        // Double-click to edit person
-        function setupNodeEvents(nodes) {
-            const container = document.getElementById('tree');
-            const network = window.network;
+        // Refresh all dropdowns with current people
+        function refreshSelects() {
+            const selects = [
+                document.getElementById('parentId'),
+                document.getElementById('childId'),
+                document.getElementById('personId1'),
+                document.getElementById('personId2')
+            ];
 
-            network.on("doubleClick", (params) => {
-                if (params.nodes.length === 1) {
-                    const nodeId = params.nodes[0];
-                    const person = family.people.find(p => p.id === nodeId);
-                    if (person) addPerson(person);
-                }
-            });
+            selects.forEach(select => {
+                const prevValue = select.value;
+                select.innerHTML = '<option value="">(Select a person)</option>';
+
+                family.people.forEach(person => {
+                    const option = document.createElement('option');
+                    option.value = person.id;
+                    option.textContent = person.fullName;
+                    select.appendChild(option);
+                });
+
+          if (prevValue && family.people.some(p => p.id === prevValue)) {
+              select.value = prevValue;
+          }
+      });
+    }
+
+        // Link parent → child
+        function linkParentChild() {
+            const parentId = document.getElementById('parentId').value;
+            const childId = document.getElementById('childId').value;
+
+            if (!parentId || !childId) {
+                alert("Please select both parent and child.");
+                return;
+            }
+            if (parentId === childId) {
+                alert("A person cannot be their own parent.");
+                return;
+            }
+            const exists = family.relationships.some(r =>
+                r.type === 'parent' && r.parentId === parentId && r.childId === childId
+            );
+            if (exists) {
+                alert("This parent-child link already exists.");
+                return;
+            }
+
+            family.relationships.push({ type: 'parent', parentId, childId });
+            saveData();
+            renderTree();
+            alert("✅ Parent-child link created!");
+        }
+
+        // Link spouse
+        function linkSpouse() {
+            const id1 = document.getElementById('personId1').value;
+            const id2 = document.getElementById('personId2').value;
+
+            if (!id1 || !id2) {
+                alert("Please select two people.");
+                return;
+            }
+            if (id1 === id2) {
+                alert("A person cannot be their own spouse.");
+                return;
+            }
+            const exists = family.relationships.some(r =>
+                r.type === 'spouse' &&
+                ((r.personId1 === id1 && r.personId2 === id2) ||
+                    (r.personId1 === id2 && r.personId2 === id1))
+            );
+            if (exists) {
+                alert("This spouse relationship already exists.");
+                return;
+            }
+
+            family.relationships.push({ type: 'spouse', personId1: id1, personId2: id2 });
+            saveData();
+            renderTree();
+            alert("✅ Spouse link created!");
         }
 
         // Render family tree with vis.js
@@ -164,23 +252,54 @@
                 }))
             );
 
-            const edges = family.relationships
-                .filter(r => r.type === 'parent')
-                .map(r => ({ from: r.parentId, to: r.childId }));
+        const edges = [];
 
-            const data = { nodes, edges };
-            const options = {
-                layout: { hierarchical: { direction: 'UD' } },
-                physics: { enabled: true },
-                interaction: { zoomView: true, dragView: true }
-            };
+        // Parent → Child (solid arrow)
+        family.relationships
+            .filter(r => r.type === 'parent')
+            .forEach(r => {
+                edges.push({ from: r.parentId, to: r.childId, arrows: 'to' });
+            });
 
-            const container = document.getElementById('tree');
-            window.network = new vis.Network(container, data, options);
-            setupNodeEvents();
-        }
+        // Spouse links (dashed, bidirectional)
+        family.relationships
+            .filter(r => r.type === 'spouse')
+            .forEach(r => {
+                edges.push({
+                    from: r.personId1,
+                    to: r.personId2,
+                    dashes: true,
+                    color: 'gray',
+                    arrows: 'both'
+                });
+            });
 
-        // Format date as YYYY-MM-DD → "Jan 1, 1970"
+        const data = { nodes, edges };
+        const options = {
+          layout: { hierarchical: false },
+          physics: {
+              enabled: true,
+              stabilization: { iterations: 100 },
+              hierarchicalRepulsion: { nodeDistance: 130 }
+          },
+          edges: { smooth: true },
+          interaction: { zoomView: true, dragView: true }
+      };
+
+        const container = document.getElementById('tree');
+        window.network = new vis.Network(container, data, options);
+
+        // Double-click to edit
+        window.network.on("doubleClick", (params) => {
+            if (params.nodes.length === 1) {
+                const nodeId = params.nodes[0];
+                const person = family.people.find(p => p.id === nodeId);
+                if (person) addPerson(person);
+            }
+        });
+    }
+
+        // Format date as "Jan 1, 1970"
         function formatDate(dateStr) {
             if (!dateStr) return '?';
             const d = new Date(dateStr);
@@ -193,9 +312,9 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `family-tree-${new Date().toISOString().slice(0, 10)}.json`;
-            a.click();
-        }
+        a.download = `family-tree-${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+    }
 
         // Import data from JSON file
         document.getElementById('importFile').addEventListener('change', async (e) => {
@@ -204,23 +323,22 @@
             const text = await file.text();
             try {
                 const imported = JSON.parse(text);
-                // Basic validation
-                if (Array.isArray(imported.people)) {
-                    family = imported;
-                    saveData();
-                    alert('✅ Import successful!');
-                    location.reload();
-                } else {
-                    alert('❌ Invalid format.');
-                }
-            } catch (err) {
-                alert('❌ Failed to parse JSON.');
-                console.error(err);
+            if (Array.isArray(imported.people)) {
+                family = imported;
+                saveData();
+                alert('✅ Import successful!');
+                location.reload();
+            } else {
+                alert('❌ Invalid format.');
             }
-            e.target.value = ''; // Reset input
-        });
+        } catch (err) {
+            alert('❌ Failed to parse JSON.');
+            console.error(err);
+        }
+        e.target.value = ''; // Reset input
+    });
 
-        // ——— PWA: Prompt to Install ———
+        // PWA: Prompt to install
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             setTimeout(() => {
@@ -234,14 +352,13 @@
         window.onload = () => {
             loadData();
         };
-    </script>
+  </script>
 
-    <!-- Service Worker Registration -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(console.error);
-        }
-    </script>
+<!-- Register Service Worker -->
+<script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(console.error);
+    }
+</script>
 </body>
-
 </html>
