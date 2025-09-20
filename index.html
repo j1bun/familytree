@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#1e40af" />
+    <title>Family Tree</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- vis.js for visualization -->
+    <link href="https://unpkg.com/vis-network@9/styles/vis-network.css" rel="stylesheet" />
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌳</text></svg>">
+</head>
+
+<body class="bg-gray-100 font-sans">
+
+    <div class="container mx-auto p-4 max-w-4xl">
+        <h1 class="text-3xl font-bold text-center mb-6 text-blue-700">My Family Tree</h1>
+
+        <!-- Controls -->
+        <div class="bg-white p-4 rounded shadow-md mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button onclick="addPerson()" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">➕ Add
+                Person</button>
+            <button onclick="exportData()" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">📤
+                Export</button>
+            <label class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded text-center cursor-pointer">
+                📂 Import <input type="file" id="importFile" accept=".json" class="hidden" />
+            </label>
+        </div>
+
+        <!-- Tree Visualization -->
+        <div id="tree" class="bg-white p-2 rounded shadow h-96"></div>
+    </div>
+
+    <!-- Modal for Adding/Editing -->
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+        <div class="bg-white p-6 rounded shadow-lg w-96">
+            <h2 class="text-xl font-bold mb-4">Add Family Member</h2>
+            <form id="personForm">
+                <input type="text" id="fullName" placeholder="Full Name" class="w-full mb-3 p-2 border rounded"
+                    required />
+                <input type="date" id="birthDate" class="w-full mb-3 p-2 border rounded" required />
+                <input type="date" id="deathDate" placeholder="Death Date (optional)"
+                    class="w-full mb-3 p-2 border rounded" />
+                <div class="flex gap-2">
+                    <button type="submit"
+                        class="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Save</button>
+                    <button type="button" onclick="closeModal()"
+                        class="flex-1 bg-gray-400 text-white py-2 rounded hover:bg-gray-500">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Default data structure
+        let family = {
+            people: [],
+            relationships: [] // { type: 'parent', parentId: 'id1', childId: 'id2' } or { type: 'spouse', personId1, personId2 }
+        };
+
+        // Load from localStorage on start
+        function loadData() {
+            const saved = localStorage.getItem('familyTree');
+            if (saved) {
+                family = JSON.parse(saved);
+            } else {
+                // Add demo person if empty
+                const johnId = newId();
+                family.people.push({
+                    id: johnId,
+                    fullName: "John Doe",
+                    birthDate: "1970-01-01",
+                    deathDate: null
+                });
+                saveData(); // Save default
+            }
+            renderTree();
+        }
+
+        // Save to localStorage
+        function saveData() {
+            localStorage.setItem('familyTree', JSON.stringify(family));
+        }
+
+        // Generate simple ID
+        function newId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        // Open modal to add person
+        function addPerson(person = null) {
+            document.getElementById('personForm').reset();
+            const form = document.getElementById('personForm');
+            const fullNameInput = document.getElementById('fullName');
+            const birthDateInput = document.getElementById('birthDate');
+            const deathDateInput = document.getElementById('deathDate');
+
+            if (person) {
+                fullNameInput.value = person.fullName;
+                birthDateInput.value = person.birthDate;
+                deathDateInput.value = person.deathDate || '';
+            }
+
+            form.onsubmit = (e) => {
+                e.preventDefault();
+                if (person) {
+                    // Edit existing
+                    Object.assign(person, {
+                        fullName: fullNameInput.value,
+                        birthDate: birthDateInput.value,
+                        deathDate: deathDateInput.value || null
+                    });
+                } else {
+                    // Add new
+                    family.people.push({
+                        id: newId(),
+                        fullName: fullNameInput.value,
+                        birthDate: birthDateInput.value,
+                        deathDate: deathDateInput.value || null
+                    });
+                }
+                saveData();
+                closeModal();
+                renderTree();
+            };
+
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        // Double-click to edit person
+        function setupNodeEvents(nodes) {
+            const container = document.getElementById('tree');
+            const network = window.network;
+
+            network.on("doubleClick", (params) => {
+                if (params.nodes.length === 1) {
+                    const nodeId = params.nodes[0];
+                    const person = family.people.find(p => p.id === nodeId);
+                    if (person) addPerson(person);
+                }
+            });
+        }
+
+        // Render family tree with vis.js
+        function renderTree() {
+            const nodes = new vis.DataSet(
+                family.people.map(p => ({
+                    id: p.id,
+                    label: `${p.fullName}\n${formatDate(p.birthDate)}${p.deathDate ? ' – ' + formatDate(p.deathDate) : ''}`
+                }))
+            );
+
+            const edges = family.relationships
+                .filter(r => r.type === 'parent')
+                .map(r => ({ from: r.parentId, to: r.childId }));
+
+            const data = { nodes, edges };
+            const options = {
+                layout: { hierarchical: { direction: 'UD' } },
+                physics: { enabled: true },
+                interaction: { zoomView: true, dragView: true }
+            };
+
+            const container = document.getElementById('tree');
+            window.network = new vis.Network(container, data, options);
+            setupNodeEvents();
+        }
+
+        // Format date as YYYY-MM-DD → "Jan 1, 1970"
+        function formatDate(dateStr) {
+            if (!dateStr) return '?';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        // Export data as JSON file
+        function exportData() {
+            const blob = new Blob([JSON.stringify(family, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `family-tree-${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+        }
+
+        // Import data from JSON file
+        document.getElementById('importFile').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const text = await file.text();
+            try {
+                const imported = JSON.parse(text);
+                // Basic validation
+                if (Array.isArray(imported.people)) {
+                    family = imported;
+                    saveData();
+                    alert('✅ Import successful!');
+                    location.reload();
+                } else {
+                    alert('❌ Invalid format.');
+                }
+            } catch (err) {
+                alert('❌ Failed to parse JSON.');
+                console.error(err);
+            }
+            e.target.value = ''; // Reset input
+        });
+
+        // ——— PWA: Prompt to Install ———
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            setTimeout(() => {
+                if (confirm("Want to install this Family Tree app for offline use?")) {
+                    e.prompt();
+                }
+            }, 1000);
+        });
+
+        // Load everything when page is ready
+        window.onload = () => {
+            loadData();
+        };
+    </script>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(console.error);
+        }
+    </script>
+</body>
+
+</html>
