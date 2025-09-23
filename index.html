@@ -19,78 +19,93 @@
 </head>
 <body class="bg-gray-100 font-sans">
 
-  <div class="container mx-auto p-4 max-w-4xl">
-    <!-- Controls -->
-    <div class="bg-white p-4 rounded shadow-md mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-      <button onclick="addPerson()" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">➕ Add Person</button>
-      <button onclick="exportData()" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">📤 Export</button>
-      <label class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded text-center cursor-pointer">
-        📂 Import <input type="file" id="importFile" accept=".json" class="hidden" />
-      </label>
-    </div>
+  <div class="container mx-auto p-4 max-w-4xl flex flex-col h-screen">
 
-    <!-- Linking Section -->
-    <div class="bg-white p-4 rounded shadow-md mb-6">
-      <h2 class="text-lg font-semibold mb-3">🔗 Link Family Members</h2>
+    <h1 class="text-3xl font-bold text-center mb-6 text-blue-700">My Family Tree</h1>
 
-      <!-- Parent → Child -->
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700">Parent ➝ Child</label>
-        <select id="parentId" class="w-full mt-1 p-2 border rounded"></select>
-        ➝
-        <select id="childId" class="w-full mt-1 p-2 border rounded"></select>
-        <button onclick="linkParentChild()" class="mt-2 bg-green-500 text-white py-1 px-3 rounded text-sm hover:bg-green-600">Link</button>
+    <!-- Controls & Linking Section -->
+    <div class="space-y-6 flex-shrink-0">
+
+      <!-- Buttons -->
+      <div class="bg-white p-4 rounded shadow-md grid grid-cols-1 md:grid-cols-3 gap-4">
+        <button onclick="addPerson()" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">➕ Add Person</button>
+        <button onclick="exportData()" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">📤 Export</button>
+        <label class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded text-center cursor-pointer">
+          📂 Import <input type="file" id="importFile" accept=".json" class="hidden" />
+        </label>
       </div>
 
-      <!-- Spouse Linking -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Spouse / Partner</label>
-        <select id="personId1" class="w-full mt-1 p-2 border rounded"></select>
-        ↔
-        <select id="personId2" class="w-full mt-1 p-2 border rounded"></select>
-        <button onclick="linkSpouse()" class="mt-2 bg-purple-500 text-white py-1 px-3 rounded text-sm hover:bg-purple-600">Link</button>
-      </div>
-    </div>
+      <!-- Linking Section - Side by Side -->
+      <div class="bg-white p-4 rounded shadow-md">
+        <h2 class="text-lg font-semibold mb-4 text-center md:text-left">🔗 Link Family Members</h2>
 
-    <!-- Tree Visualization -->
-    <div id="tree" class="bg-white p-2 rounded shadow h-96"></div>
-  </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-  <!-- Modal for Adding/Editing -->
-  <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
-    <div class="bg-white p-6 rounded shadow-lg w-96 max-h-96 overflow-y-auto">
-      <h2 class="text-xl font-bold mb-4" id="modalTitle">Add Family Member</h2>
-      <form id="personForm">
-        <input type="text" id="fullName" placeholder="Full Name" class="w-full mb-3 p-2 border rounded" required />
-        <input type="date" id="birthDate" class="w-full mb-3 p-2 border rounded" required />
-        <input type="date" id="deathDate" placeholder="Death Date (optional)" class="w-full mb-3 p-2 border rounded" />
-
-        <div class="flex gap-2 mb-4">
-          <button type="submit" class="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Save</button>
-          <button type="button" onclick="closeModal()" class="flex-1 bg-gray-400 text-white py-2 rounded hover:bg-gray-500">Cancel</button>
-        </div>
-      </form>
-
-        <!-- Current Relationships -->
-        <div id="relationshipsSection" class="mt-4 hidden">
-        <h3 class="text-sm font-semibold text-gray-700 mb-2">Current Relationships</h3>
-        <ul id="relationshipsList" class="space-y-1 text-sm"></ul>
-
-        <!-- Delete Person Button -->
-        <div class="mt-4 pt-3 border-t">
-            <button type="button" onclick="deletePerson()" class="w-full bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded text-sm">
-            🗑️ Delete This Person
+          <!-- Parent → Child -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Parent ➝ Child</label>
+            <select id="parentId" class="w-full p-2 border rounded mb-2"></select>
+            <div class="flex items-center justify-center my-2 text-gray-500 text-lg">➝</div>
+            <select id="childId" class="w-full p-2 border rounded mb-2"></select>
+            <button onclick="linkParentChild()" class="w-full bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded text-sm">
+              Link as Parent
             </button>
+          </div>
+
+          <!-- Spouse Linking -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Spouse / Partner</label>
+            <select id="personId1" class="w-full p-2 border rounded mb-2"></select>
+            <div class="flex items-center justify-center my-2 text-gray-500 text-lg">↔</div>
+            <select id="personId2" class="w-full p-2 border rounded mb-2"></select>
+            <button onclick="linkSpouse()" class="w-full bg-purple-500 hover:bg-purple-600 text-white py-1 px-3 rounded text-sm">
+              Link as Spouses
+            </button>
+          </div>
+
         </div>
-        </div>
+      </div>
     </div>
+
+    <!-- Tree Visualization - Grows to Fill Space -->
+    <h2 class="text-lg font-semibold mt-4 mb-1 text-center md:text-left">🌳 Family Tree</h2>
+    <div id="tree" class="bg-white p-2 rounded shadow flex-grow"></div>
+
+    <!-- Modal for Adding/Editing -->
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+      <div class="bg-white p-6 rounded shadow-lg w-96 max-h-96 overflow-y-auto">
+        <h2 class="text-xl font-bold mb-4" id="modalTitle">Add Family Member</h2>
+        <form id="personForm">
+          <input type="text" id="fullName" placeholder="Full Name" class="w-full mb-3 p-2 border rounded" required />
+          <input type="date" id="birthDate" class="w-full mb-3 p-2 border rounded" required />
+          <input type="date" id="deathDate" placeholder="Death Date (optional)" class="w-full mb-3 p-2 border rounded" />
+
+          <div class="flex gap-2 mb-4">
+            <button type="submit" class="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Save</button>
+            <button type="button" onclick="closeModal()" class="flex-1 bg-gray-400 text-white py-2 rounded hover:bg-gray-500">Cancel</button>
+          </div>
+        </form>
+
+        <!-- Relationships & Delete -->
+        <div id="relationshipsSection" class="mt-4 hidden">
+          <h3 class="text-sm font-semibold text-gray-700 mb-2">Current Relationships</h3>
+          <ul id="relationshipsList" class="space-y-1 text-sm"></ul>
+          <div class="mt-4 pt-3 border-t">
+            <button type="button" onclick="deletePerson()" class="w-full bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded text-sm">
+              🗑️ Delete This Person
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script>
     // Default data structure
     let family = {
       people: [],
-      relationships: [] // { id, type, parentId, childId } or { id, type, personId1, personId2 }
+      relationships: []
     };
 
     // Load from localStorage on start
@@ -99,7 +114,6 @@
       if (saved) {
         family = JSON.parse(saved);
       } else {
-        // Start completely empty
         family = { people: [], relationships: [] };
         saveData();
       }
@@ -117,7 +131,7 @@
       return Date.now().toString(36) + Math.random().toString(36).substr(2);
     }
 
-    // Currently edited person (for relationship management)
+    // Currently edited person
     let currentEditedPerson = null;
 
     // Open modal to add or edit person
@@ -130,7 +144,6 @@
       const relationshipsList = document.getElementById('relationshipsList');
 
       if (person) {
-        // Editing existing
         document.getElementById('modalTitle').textContent = `Edit: ${person.fullName}`;
         fullNameInput.value = person.fullName;
         birthDateInput.value = person.birthDate;
@@ -138,7 +151,6 @@
         relationshipsSection.classList.remove('hidden');
         currentEditedPerson = person;
 
-        // Populate relationships
         relationshipsList.innerHTML = '';
         const relatedLinks = family.relationships.filter(r =>
           (r.type === 'parent' && (r.parentId === person.id || r.childId === person.id)) ||
@@ -169,13 +181,11 @@
           });
         }
       } else {
-        // Adding new
         document.getElementById('modalTitle').textContent = 'Add Family Member';
         relationshipsSection.classList.add('hidden');
         currentEditedPerson = null;
       }
 
-      // Form submit handler
       document.getElementById('personForm').onsubmit = (e) => {
         e.preventDefault();
         if (person) {
@@ -218,7 +228,7 @@
       return null;
     }
 
-    // Refresh dropdowns (used in linking UI)
+    // Refresh dropdowns
     function refreshSelects() {
       const selects = [
         document.getElementById('parentId'),
@@ -296,46 +306,41 @@
       alert("✅ Spouse link created!");
     }
 
-    // Remove a relationship by ID
+    // Remove a relationship
     function removeRelationship(relationshipId) {
       if (confirm("Remove this relationship?")) {
         family.relationships = family.relationships.filter(r => r.id !== relationshipId);
         saveData();
-        closeModal();           // Close modal
+        closeModal();
         setTimeout(() => {
-          if (currentEditedPerson) {
-            addPerson(currentEditedPerson); // Reopen edit to refresh list
-          }
+          if (currentEditedPerson) addPerson(currentEditedPerson);
         }, 100);
         renderTree();
         refreshSelects();
       }
     }
 
-    // Delete a person and all their relationships
+    // Delete a person
     function deletePerson() {
-        if (!currentEditedPerson) return;
-
-        const name = currentEditedPerson.fullName;
-        if (confirm(`Delete "${name}" and all their relationships? This cannot be undone.`)) {
-            // Remove person
-            family.people = family.people.filter(p => p.id !== currentEditedPerson.id);
-
-            // Remove any relationships involving this person
-            family.relationships = family.relationships.filter(r =>
-            !((r.type === 'parent' && (r.parentId === currentEditedPerson.id || r.childId === currentEditedPerson.id)) ||
-                (r.type === 'spouse' && (r.personId1 === currentEditedPerson.id || r.personId2 === currentEditedPerson.id)))
-            );
-
-            saveData();
-            closeModal();
-            renderTree();
-            refreshSelects();
-            alert(`✅ "${name}" has been deleted.`);
-        }
+      if (!currentEditedPerson) return;
+      const name = currentEditedPerson.fullName;
+      if (confirm(`Delete "${name}" and all their relationships? This cannot be undone.`)) {
+        family.people = family.people.filter(p => p.id !== currentEditedPerson.id);
+        family.relationships = family.relationships.filter(r =>
+          !(r.parentId === currentEditedPerson.id ||
+            r.childId === currentEditedPerson.id ||
+            r.personId1 === currentEditedPerson.id ||
+            r.personId2 === currentEditedPerson.id)
+        );
+        saveData();
+        closeModal();
+        renderTree();
+        refreshSelects();
+        alert(`✅ "${name}" has been deleted.`);
+      }
     }
 
-    // Render family tree with vis.js
+    // Render family tree
     function renderTree() {
       const nodes = new vis.DataSet(
         family.people.map(p => ({
@@ -346,14 +351,12 @@
 
       const edges = [];
 
-      // Parent → Child (solid arrow)
       family.relationships
         .filter(r => r.type === 'parent')
         .forEach(r => {
           edges.push({ from: r.parentId, to: r.childId, arrows: 'to' });
         });
 
-      // Spouse links (dashed, bidirectional)
       family.relationships
         .filter(r => r.type === 'spouse')
         .forEach(r => {
@@ -381,7 +384,6 @@
       const container = document.getElementById('tree');
       window.network = new vis.Network(container, data, options);
 
-      // Double-click to edit
       window.network.on("doubleClick", (params) => {
         if (params.nodes.length === 1) {
           const nodeId = params.nodes[0];
@@ -398,7 +400,7 @@
       return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
     }
 
-    // Export data as JSON
+    // Export data
     function exportData() {
       const blob = new Blob([JSON.stringify(family, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
