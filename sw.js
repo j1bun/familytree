@@ -1,4 +1,4 @@
-const CACHE = 'family-tree-v1';
+const CACHE = 'family-tree-v2';
 
 self.addEventListener('install', (e) => {
     e.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(['./'])));
